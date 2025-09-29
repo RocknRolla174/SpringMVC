@@ -1,6 +1,7 @@
 package com.example.model;
 
 import javax.persistence.*;
+import javax.validation.constraints.*;
 
 @Entity
 @Table(name = "users")
@@ -9,23 +10,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Name is mandatory")
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Email(message = "Email should be valid")
     @Column(name = "email", unique = true)
     private String email;
 
+    @Min(value = 0, message = "Age should not be less than 0")
+    @Max(value = 150, message = "Age should not be greater than 150")
     @Column(name = "age")
     private Integer age;
-
-    // Конструкторы
-    public User() {}
-
-    public User(String name, String email, Integer age) {
-        this.name = name;
-        this.email = email;
-        this.age = age;
-    }
 
     // Геттеры и сеттеры
     public Long getId() { return id; }

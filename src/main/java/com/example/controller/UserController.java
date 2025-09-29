@@ -2,61 +2,51 @@ package com.example.controller;
 
 import com.example.model.User;
 import com.example.service.UserService;
-import com.example.util.HtmlUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @GetMapping("/users")
-    public void showAllUsers(HttpServletResponse response) throws IOException {
-        List<User> users = userService.getAllUsers();
-        String html = HtmlUtil.generateUserListHtml(users);
-        response.setContentType("text/html");
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(html);
+    @GetMapping
+    public String showAllUsers(Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("user", new User()); // для формы добавления
+        return "users";
     }
 
-    @PostMapping("/users/add")
-    public void addUser(@RequestParam String name,
-                        @RequestParam String email,
-                        @RequestParam Integer age,
-                        HttpServletResponse response) throws IOException {
-        User user = new User(name, email, age);
+    @PostMapping("/add")
+    public String addUser(@ModelAttribute User user) {
         userService.saveUser(user);
-        response.sendRedirect("/SpringMVC_war_exploded/users");
+        return "redirect:/users";
     }
 
-    @PostMapping("/users/update")
-    public void updateUser(@RequestParam Long id,
-                           @RequestParam String name,
-                           @RequestParam String email,
-                           @RequestParam Integer age,
-                           HttpServletResponse response) throws IOException {
+    @PostMapping("/update")
+    public String updateUser(@ModelAttribute User user) {
+        userService.updateUser(user);
+        return "redirect:/users";
+    }
+
+    @PostMapping("/delete")
+    public String deleteUser(@RequestParam Long id) {
+        userService.deleteUser(id);
+        return "redirect:/users";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String editUser(@PathVariable Long id, Model model) {
         User user = userService.getUserById(id);
         if (user != null) {
-            user.setName(name);
-            user.setEmail(email);
-            user.setAge(age);
-            userService.updateUser(user);
+            model.addAttribute("user", user);
+            model.addAttribute("users", userService.getAllUsers());
+            return "users";
         }
-        response.sendRedirect("/SpringMVC_war_exploded/users");
-    }
-
-    @PostMapping("/users/delete")
-    public void deleteUser(@RequestParam Long id, HttpServletResponse response) throws IOException {
-        userService.deleteUser(id);
-        response.sendRedirect("/SpringMVC_war_exploded/users");
+        return "redirect:/users";
     }
 }
